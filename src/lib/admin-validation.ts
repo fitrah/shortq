@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { emailSchema, passwordSchema } from '@/lib/validation';
+import { PLAN_FEATURES } from '@/lib/plan-features';
 
 export const planAdminSchema = z.object({
   name: z.string().trim().min(2).max(80),
@@ -12,7 +13,7 @@ export const planAdminSchema = z.object({
   qrQuota: z.number().int().min(0).max(10_000_000),
   apiRateLimit: z.number().int().min(1).max(100_000),
   apiKeyQuota: z.number().int().min(0).max(1000),
-  features: z.array(z.string().trim().min(1).max(200)).max(100),
+  features: z.array(z.enum(PLAN_FEATURES)).max(100),
   isActive: z.boolean().default(true),
 });
 export const planAdminUpdateSchema = planAdminSchema.partial();
