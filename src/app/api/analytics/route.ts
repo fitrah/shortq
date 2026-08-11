@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { errorResponse } from '@/lib/validation';
@@ -13,6 +14,12 @@ function referrerHost(value: string | null) {
   try { return new URL(value).hostname || 'Direct'; } catch { return 'Unknown'; }
 }
 
+function parseDateParam(value: string | null, endOfDay = false) {
+  if (!value) return null;
+  const date = new Date(`${value}T${endOfDay ? '23:59:59.999' : '00:00:00.000'}Z`);
+  return Number.isNaN(date.getTime()) ? undefined : date;
+}
+
 export async function GET(request: Request) {
   const session = await getSession();
   if (!session) return errorResponse('Unauthorized', 401);
@@ -20,6 +27,13 @@ export async function GET(request: Request) {
   const linkId = url.searchParams.get('linkId');
   const page = Math.max(1, Number(url.searchParams.get('page') || 1) || 1);
   const pageSize = Math.min(25, Math.max(5, Number(url.searchParams.get('pageSize') || 10) || 10));
+  const createdFrom = parseDateParam(url.searchParams.get('createdFrom'));
+  const createdTo = parseDateParam(url.searchParams.get('createdTo'), true);
+  if (createdFrom === undefined || createdTo === undefined) return errorResponse('Tanggal filter tidak valid', 400);
+  const createdAt: Prisma.DateTimeFilter = {};
+  if (createdFrom) createdAt.gte = createdFrom;
+  if (createdTo) createdAt.lte = createdTo;
+  const createdFilter = Object.keys(createdAt).length ? { createdAt } : {};
   const linkFilter = linkId ? { id: linkId } : {};
   if (linkId && !await prisma.shortLink.findFirst({ where: { id: linkId, userId: session.userId }, select: { id: true } })) {
     return errorResponse('Link tidak ditemukan', 404);
@@ -28,29 +42,30 @@ export async function GET(request: Request) {
   since.setUTCDate(since.getUTCDate() - 29);
   since.setUTCHours(0, 0, 0, 0);
   const where = { userId: session.userId, ...linkFilter };
+  const filteredWhere = { ...where, ...createdFilter };
   const [clicks, linksForSummary, linkOptions, topLinks, topLinksTotal] = await Promise.all([
     prisma.click.findMany({
-      where: { shortLink: where, clickedAt: { gte: since } },
+      where: { shortLink: filteredWhere, clickedAt: { gte: since } },
       select: { clickedAt: true, referrer: true, browser: true, device: true, country: true },
       orderBy: { clickedAt: 'asc' },
     }),
     prisma.shortLink.findMany({
-      where,
+      where: filteredWhere,
       select: { id: true, clickCount: true },
     }),
     prisma.shortLink.findMany({
-      where: { userId: session.userId },
+      where: { userId: session.userId, ...createdFilter },
       select: { id: true, alias: true, title: true },
       orderBy: { createdAt: 'desc' },
     }),
     prisma.shortLink.findMany({
-      where,
+      where: filteredWhere,
       select: { id: true, alias: true, title: true, clickCount: true },
       orderBy: { clickCount: 'desc' },
       skip: (page - 1) * pageSize,
       take: pageSize,
     }),
-    prisma.shortLink.count({ where }),
+    prisma.shortLink.count({ where: filteredWhere }),
   ]);
   const timeline = new Map<string, number>();
   for (let day = 0; day < 30; day++) {
