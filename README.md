@@ -38,6 +38,8 @@ npm run dev
 - `MIDTRANS_IS_PRODUCTION`: `true` hanya untuk akun production.
 - `PASSWORD_RESET_WEBHOOK_URL`: endpoint mailer internal/provider yang menerima JSON `{to, template, resetUrl, expiresInMinutes}`.
 - `PASSWORD_RESET_WEBHOOK_TOKEN`: Bearer token opsional untuk delivery webhook.
+- `RESEND_API_KEY`: fallback pengiriman email reset password jika webhook kosong.
+- `PASSWORD_RESET_FROM_EMAIL`: sender reset password, default `go.proyek.org <noreply@notify.proyek.org>`.
 
 Daftarkan notification URL Midtrans ke:
 
