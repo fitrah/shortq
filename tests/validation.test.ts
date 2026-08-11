@@ -1,0 +1,2 @@
+import {describe,it,expect} from 'vitest'; import {linkSchema,registerSchema} from '../src/lib/validation';
+describe('validation',()=>{it('accepts valid registration',()=>expect(registerSchema.safeParse({name:'Fitrah',email:'user@example.com',password:'password123'}).success).toBe(true));it('rejects javascript URLs',()=>expect(linkSchema.safeParse({targetUrl:'javascript:alert(1)'}).success).toBe(false));it('rejects invalid aliases',()=>expect(linkSchema.safeParse({targetUrl:'https://example.com',alias:'a b'}).success).toBe(false))});

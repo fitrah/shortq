@@ -1,0 +1,6 @@
+'use client';
+import { FormEvent, useState } from 'react';
+import Link from 'next/link';
+import { AuthShell, Input } from '@/components/auth';
+
+export default function ForgotPassword() { const [message, setMessage] = useState(''); const [devUrl, setDevUrl] = useState(''); async function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); const form = new FormData(event.currentTarget); const response = await fetch('/api/auth/forgot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: form.get('email') }) }); const data = await response.json(); setMessage(data.message); setDevUrl(data.resetUrl || ''); } return <AuthShell title="Reset password" footer={<Link href="/login" className="text-cyan-400">Kembali masuk</Link>}><p className="mb-5 text-sm text-slate-400">Masukkan email akun. Tautan reset berlaku 30 menit.</p><form onSubmit={submit} className="space-y-4"><Input name="email" type="email" label="Email" /><button className="w-full rounded-xl bg-cyan-400 p-3 font-bold text-slate-950">Kirim instruksi</button>{message && <p className="text-sm text-cyan-300">{message}</p>}{devUrl && <a href={devUrl} className="block break-all text-xs text-amber-300">Development reset URL: {devUrl}</a>}</form></AuthShell>; }

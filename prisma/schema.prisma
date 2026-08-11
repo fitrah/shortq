@@ -1,0 +1,193 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  SUPERADMIN
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  EXPIRED
+  PENDING
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  FAILED
+  EXPIRED
+  REFUNDED
+}
+
+model User {
+  id             String         @id @default(cuid())
+  name           String
+  email          String         @unique
+  passwordHash   String
+  sessionVersion Int            @default(0)
+  role           Role           @default(USER)
+  isActive       Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  links          ShortLink[]
+  apiKeys        ApiKey[]
+  qrCodes        QrCode[]
+  subscriptions  Subscription[]
+  orders         Order[]
+}
+
+model ShortLink {
+  id           String    @id @default(cuid())
+  userId       String
+  alias        String    @unique
+  targetUrl    String
+  title        String?
+  passwordHash String?
+  expiresAt    DateTime?
+  isActive     Boolean   @default(true)
+  clickCount   Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clicks       Click[]
+
+  @@index([userId, createdAt])
+}
+
+model Click {
+  id          String    @id @default(cuid())
+  shortLinkId String
+  clickedAt   DateTime  @default(now())
+  referrer    String?
+  browser     String?
+  device      String?
+  country     String?
+  ipHash      String?
+  shortLink   ShortLink @relation(fields: [shortLinkId], references: [id], onDelete: Cascade)
+
+  @@index([shortLinkId, clickedAt])
+}
+
+model QrCode {
+  id         String   @id @default(cuid())
+  userId     String
+  name       String
+  content    String
+  foreground String   @default("#111827")
+  background String   @default("#ffffff")
+  format     String   @default("png")
+  size       Int      @default(1024)
+  margin     Int      @default(2)
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model ApiKey {
+  id          String          @id @default(cuid())
+  userId      String
+  name        String
+  keyPrefix   String
+  keyHash     String          @unique
+  scopes      String[]
+  rateLimit   Int             @default(60)
+  lastUsedAt  DateTime?
+  revokedAt   DateTime?
+  createdAt   DateTime        @default(now())
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rateBuckets ApiRateBucket[]
+
+  @@index([userId, createdAt])
+}
+
+model ApiRateBucket {
+  id           String   @id @default(cuid())
+  apiKeyId     String
+  windowStart  DateTime
+  requestCount Int      @default(0)
+  apiKey       ApiKey   @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+
+  @@unique([apiKeyId, windowStart])
+  @@index([windowStart])
+}
+
+model Plan {
+  id            String         @id @default(cuid())
+  name          String         @unique
+  slug          String         @unique
+  description   String?
+  price         Int            @default(0)
+  currency      String         @default("IDR")
+  durationDays  Int            @default(30)
+  linkQuota     Int            @default(25)
+  qrQuota       Int            @default(10)
+  apiRateLimit  Int            @default(30)
+  apiKeyQuota   Int            @default(2)
+  features      Json
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  subscriptions Subscription[]
+  orders        Order[]
+}
+
+model Subscription {
+  id        String             @id @default(cuid())
+  userId    String
+  planId    String
+  orderId   String?            @unique
+  status    SubscriptionStatus @default(PENDING)
+  startsAt  DateTime?
+  endsAt    DateTime?
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan      Plan               @relation(fields: [planId], references: [id])
+  order     Order?             @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([userId, status, endsAt])
+}
+
+model Order {
+  id           String        @id @default(cuid())
+  userId       String
+  planId       String
+  externalId   String        @unique
+  amount       Int
+  status       OrderStatus   @default(PENDING)
+  snapToken    String?
+  metadata     Json?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan         Plan          @relation(fields: [planId], references: [id])
+  subscription Subscription?
+
+  @@index([userId, createdAt])
+}
+
+model SiteSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+model PasswordReset {
+  id        String    @id @default(cuid())
+  email     String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([email, createdAt])
+}

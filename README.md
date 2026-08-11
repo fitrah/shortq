@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# go.proyek.org
 
-## Getting Started
+Platform full-stack URL shortener, QR generator, analytics, REST API, subscription, dan administrasi berbasis Next.js 16, PostgreSQL, dan Prisma.
 
-First, run the development server:
+## Modul
+
+- **Auth:** register/login/logout, forgot/reset melalui delivery webhook, change password, bcrypt, cookie JWT HttpOnly, dan invalidasi sesi setelah perubahan password/status user.
+- **Short link:** create/read/edit/delete, alias, target, status aktif, password, expiry, kuota paket, serta halaman password untuk visitor.
+- **Analytics:** click count, timeline 30 hari, referrer, browser, device, country, top link, dan salted IP hash.
+- **QR:** UI preview/riwayat, kustom warna/ukuran/margin, unduh PNG atau SVG, dan quota enforcement.
+- **REST API v1:** Bearer API key, scopes, PostgreSQL-backed per-minute rate limit, link CRUD, analytics, QR, serta OpenAPI 3.1 di `/api/v1/openapi.json` dan UI `/docs`.
+- **API key:** secret acak hanya tampil sekali, HMAC hash-at-rest, prefix, scopes, rate limit, last-used, revoke.
+- **Paket & billing:** Free/Pro/Business seed, quota, Midtrans Snap sandbox/production, order history, dan webhook dengan verifikasi signature SHA-512 + nominal.
+- **Superadmin:** CRUD paket/harga/quota/features, user, subscription, order, dan site setting melalui `/admin` serta endpoint terproteksi role.
+
+## Setup development
 
 ```bash
+cp .env.example .env
+# Isi DATABASE_URL dan random secret development.
+npm ci
+npm run db:generate
+npm run db:migrate
+npm run db:seed
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`SUPERADMIN_EMAIL` dan `SUPERADMIN_PASSWORD` opsional saat seed; password harus minimal 12 karakter. Seed tidak membuat credential default.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment penting
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `JWT_SECRET`: random minimal 32 karakter (wajib di production).
+- `API_KEY_PEPPER`: random independen minimal 32 karakter (wajib di production).
+- `IP_HASH_SALT`: random minimal 32 karakter (wajib di production).
+- `NEXT_PUBLIC_BASE_URL`: origin publik tanpa trailing slash.
+- `MIDTRANS_SERVER_KEY`: server key; jangan pernah diekspos ke browser.
+- `NEXT_PUBLIC_MIDTRANS_CLIENT_KEY`: client key Snap yang memang bersifat publik.
+- `MIDTRANS_IS_PRODUCTION`: `true` hanya untuk akun production.
+- `PASSWORD_RESET_WEBHOOK_URL`: endpoint mailer internal/provider yang menerima JSON `{to, template, resetUrl, expiresInMinutes}`.
+- `PASSWORD_RESET_WEBHOOK_TOKEN`: Bearer token opsional untuk delivery webhook.
 
-## Learn More
+Daftarkan notification URL Midtrans ke:
 
-To learn more about Next.js, take a look at the following resources:
+```text
+https://go.proyek.org/api/billing/webhook
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Webhook hanya menerima payload dengan signature Midtrans valid dan nominal yang sama dengan order lokal. Jangan menaruh secret nyata di source control.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Quality gates
 
-## Deploy on Vercel
+```bash
+npm run db:generate
+npm run lint
+npm run typecheck
+npm test
+npm run build
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Production
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm ci
+npm run db:generate
+npm run db:migrate
+npm run db:seed
+npm run build
+pm2 start ecosystem.config.cjs
+```
+
+Gunakan TLS, PostgreSQL backup, environment secret manager, dan delivery webhook email yang terautentikasi. Migrasi awal tersedia di `prisma/migrations/20260810000000_init`.
