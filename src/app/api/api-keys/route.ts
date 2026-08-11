@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { assertQuota } from '@/lib/plans';
+import { getPlanCapabilities } from '@/lib/entitlements';
 import { createOpaqueToken, hashApiKey } from '@/lib/security';
 import { apiKeySchema, errorResponse, readJson, zodError } from '@/lib/validation';
 
@@ -22,6 +23,10 @@ export async function POST(request: Request) {
   if (!parsed.success) return errorResponse('Data API key tidak valid', 400, zodError(parsed.error));
   const quota = await assertQuota(session.userId, 'apiKeys');
   if (!quota.allowed) return errorResponse(`Kuota ${quota.limit} API key aktif paket ${quota.plan.name} telah tercapai`, 403);
+  const capabilities = getPlanCapabilities(quota.plan);
+  if (parsed.data.scopes.includes('analytics:read') && !capabilities.canUseApiAnalytics) {
+    return errorResponse('Scope analytics:read tersedia untuk paket Business', 403);
+  }
   const rawKey = `gop_${createOpaqueToken(32)}`;
   const rateLimit = Math.min(parsed.data.rateLimit ?? quota.plan.apiRateLimit, quota.plan.apiRateLimit);
   const key = await prisma.apiKey.create({

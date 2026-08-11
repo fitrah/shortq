@@ -4,6 +4,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { assertQuota } from '@/lib/plans';
+import { getPlanCapabilities } from '@/lib/entitlements';
 import { isReservedAlias } from '@/lib/security';
 import { linkSchema, errorResponse, readJson, zodError } from '@/lib/validation';
 
@@ -36,6 +37,10 @@ export async function POST(request: Request) {
   if (!parsed.success) return errorResponse('Data link tidak valid', 400, zodError(parsed.error));
   const quota = await assertQuota(session.userId, 'links');
   if (!quota.allowed) return errorResponse(`Kuota ${quota.limit} short link paket ${quota.plan.name} telah tercapai`, 403);
+  const capabilities = getPlanCapabilities(quota.plan);
+  if ((parsed.data.password || parsed.data.expiresAt) && !capabilities.canUsePasswordExpiry) {
+    return errorResponse('Fitur password & expiry tersedia mulai paket Pro', 403);
+  }
   const alias = parsed.data.alias || nanoid(7);
   if (isReservedAlias(alias)) return errorResponse('Alias tersebut dicadangkan', 409);
   try {

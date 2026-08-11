@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { getEffectivePlan } from '@/lib/plans';
+import { getPlanCapabilities } from '@/lib/entitlements';
 import { errorResponse } from '@/lib/validation';
 
 export async function GET() {
@@ -16,5 +17,5 @@ export async function GET() {
       prisma.apiKey.count({ where: { userId: session.userId, revokedAt: null } }),
     ]),
   ]);
-  return Response.json({ plan, subscription, orders, usage: { links: usage[0], qr: usage[1], apiKeys: usage[2] } });
+  return Response.json({ plan, capabilities: getPlanCapabilities(plan), subscription, orders, usage: { links: usage[0], qr: usage[1], apiKeys: usage[2] } });
 }

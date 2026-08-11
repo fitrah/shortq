@@ -1,7 +1,8 @@
 import QRCode from 'qrcode';
 import { prisma } from '@/lib/prisma';
 import { authenticateApi, withRateHeaders } from '@/lib/api-auth';
-import { assertQuota } from '@/lib/plans';
+import { assertQuota, getEffectivePlan } from '@/lib/plans';
+import { getPlanCapabilities } from '@/lib/entitlements';
 import { qrSchema, errorResponse, readJson, zodError } from '@/lib/validation';
 
 export async function POST(request: Request) {
@@ -9,6 +10,8 @@ export async function POST(request: Request) {
   if ('error' in auth) return auth.error;
   const parsed = qrSchema.safeParse(await readJson(request));
   if (!parsed.success) return withRateHeaders(errorResponse('Data QR tidak valid', 400, zodError(parsed.error)), auth.rateLimit);
+  const capabilities = getPlanCapabilities(await getEffectivePlan(auth.userId));
+  if (parsed.data.format === 'svg' && !capabilities.canUseSvgQr) return withRateHeaders(errorResponse('Format SVG tersedia mulai paket Pro', 403), auth.rateLimit);
   if (parsed.data.save) {
     const quota = await assertQuota(auth.userId, 'qr');
     if (!quota.allowed) return withRateHeaders(errorResponse(`Kuota ${quota.limit} QR telah tercapai`, 403), auth.rateLimit);

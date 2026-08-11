@@ -2,6 +2,8 @@ import bcrypt from 'bcryptjs';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { authenticateApi, withRateHeaders } from '@/lib/api-auth';
+import { getPlanCapabilities } from '@/lib/entitlements';
+import { getEffectivePlan } from '@/lib/plans';
 import { isReservedAlias } from '@/lib/security';
 import { linkUpdateSchema, errorResponse, readJson, zodError } from '@/lib/validation';
 
@@ -27,6 +29,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const { id } = await params;
   if (!await prisma.shortLink.findFirst({ where: { id, userId: auth.userId }, select: { id: true } })) return withRateHeaders(errorResponse('Link tidak ditemukan', 404), auth.rateLimit);
   if (parsed.data.alias && isReservedAlias(parsed.data.alias)) return withRateHeaders(errorResponse('Alias tersebut dicadangkan', 409), auth.rateLimit);
+  const capabilities = getPlanCapabilities(await getEffectivePlan(auth.userId));
+  if ((parsed.data.password || parsed.data.expiresAt) && !capabilities.canUsePasswordExpiry) {
+    return withRateHeaders(errorResponse('Fitur password & expiry tersedia mulai paket Pro', 403), auth.rateLimit);
+  }
   const data: Prisma.ShortLinkUpdateInput = {};
   if (parsed.data.alias !== undefined) data.alias = parsed.data.alias;
   if (parsed.data.targetUrl !== undefined) data.targetUrl = parsed.data.targetUrl;

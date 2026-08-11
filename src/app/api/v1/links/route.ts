@@ -4,6 +4,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { authenticateApi, withRateHeaders } from '@/lib/api-auth';
 import { assertQuota } from '@/lib/plans';
+import { getPlanCapabilities } from '@/lib/entitlements';
 import { isReservedAlias } from '@/lib/security';
 import { linkSchema, errorResponse, readJson, zodError } from '@/lib/validation';
 
@@ -26,6 +27,10 @@ export async function POST(request: Request) {
   if (!parsed.success) return withRateHeaders(errorResponse('Data link tidak valid', 400, zodError(parsed.error)), auth.rateLimit);
   const quota = await assertQuota(auth.userId, 'links');
   if (!quota.allowed) return withRateHeaders(errorResponse(`Kuota ${quota.limit} short link telah tercapai`, 403), auth.rateLimit);
+  const capabilities = getPlanCapabilities(quota.plan);
+  if ((parsed.data.password || parsed.data.expiresAt) && !capabilities.canUsePasswordExpiry) {
+    return withRateHeaders(errorResponse('Fitur password & expiry tersedia mulai paket Pro', 403), auth.rateLimit);
+  }
   const alias = parsed.data.alias || nanoid(7);
   if (isReservedAlias(alias)) return withRateHeaders(errorResponse('Alias tersebut dicadangkan', 409), auth.rateLimit);
   try {
