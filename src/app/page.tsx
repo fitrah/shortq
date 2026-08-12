@@ -1,4 +1,77 @@
 import Link from 'next/link';
-const features=[['⚡','Redirect cepat','Tautan pendek dengan alias khusus, masa berlaku, dan proteksi.'],['📊','Analitik jelas','Pantau klik, waktu, referrer, browser, dan perangkat.'],['▦','QR fleksibel','Buat QR URL atau teks, atur warna, unduh PNG/SVG.'],['🔐','API aman','API key di-hash, scopes, quota, dan rate limit.']];
-export default function Home(){return <main className="min-h-screen bg-slate-950 text-white"><header className="sticky top-0 z-30 border-b border-slate-800/80 bg-slate-950/85 shadow-2xl shadow-black/20 backdrop-blur"><nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6"><div className="text-xl font-black"><span className="text-cyan-400">go.</span>proyek.org</div><div className="flex items-center gap-3"><Link href="/pricing" className="hidden px-2 py-2 text-slate-300 sm:block">Harga</Link><Link href="/docs" className="hidden px-2 py-2 text-slate-300 sm:block">API</Link><Link href="/login" className="px-2 py-2">Masuk</Link><Link href="/register" className="rounded-xl bg-cyan-400 px-4 py-2 font-bold text-slate-950">Mulai Gratis</Link></div></nav></header><section className="mx-auto grid max-w-6xl gap-12 px-6 py-24 lg:grid-cols-2 lg:items-center"><div><div className="mb-5 inline-block rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-sm text-cyan-300">Short links & QR untuk bisnis modern</div><h1 className="text-5xl font-black leading-tight md:text-7xl">Satu link kecil.<br/><span className="text-cyan-400">Dampak besar.</span></h1><p className="mt-6 max-w-xl text-lg text-slate-300">Pendekkan tautan, buat QR Code profesional, dan pahami audiens Anda—dalam satu platform Indonesia yang cepat dan aman.</p><div className="mt-8 flex gap-4"><Link href="/register" className="rounded-xl bg-cyan-400 px-6 py-3 font-bold text-slate-950">Buat Link Gratis →</Link><a href="#fitur" className="rounded-xl border border-slate-700 px-6 py-3">Lihat Fitur</a></div></div><div className="rounded-3xl border border-slate-700 bg-slate-900 p-6 shadow-2xl"><div className="mb-4 text-sm text-slate-400">Contoh short link</div><div className="rounded-xl bg-slate-800 p-4"><span className="text-cyan-400">go.proyek.org/</span>promo-agustus</div><div className="mt-5 grid grid-cols-3 gap-3 text-center"><Stat n="12.8K" t="Klik"/><Stat n="68%" t="Mobile"/><Stat n="24" t="Negara"/></div></div></section><section id="fitur" className="mx-auto max-w-6xl px-6 py-20"><h2 className="mb-10 text-center text-4xl font-black">Semua yang Anda butuhkan</h2><div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">{features.map(([i,h,p])=><article key={h} className="rounded-2xl border border-slate-800 bg-slate-900 p-6"><div className="mb-4 text-3xl">{i}</div><h3 className="text-xl font-bold">{h}</h3><p className="mt-2 text-sm leading-6 text-slate-400">{p}</p></article>)}</div></section><footer className="border-t border-slate-800 py-8 text-center text-sm text-slate-500">© 2026 go.proyek.org · Dibuat untuk tumbuh bersama bisnis Anda.</footer></main>}
-function Stat({n,t}:{n:string,t:string}){return <div className="rounded-xl bg-slate-950 p-4"><div className="text-xl font-bold text-cyan-400">{n}</div><div className="text-xs text-slate-500">{t}</div></div>}
+import GuestTools from '@/components/guest-tools';
+
+const features = [
+  ['Cepat', 'Short link langsung aktif dengan alias otomatis atau alias pilihan.'],
+  ['Tanpa login', 'Guest bisa membuat 2 short link dan 2 QR setiap hari dari browser yang sama.'],
+  ['QR praktis', 'Generate QR PNG untuk URL atau teks tanpa masuk dashboard.'],
+  ['Upgrade rapi', 'Daftar akun saat butuh riwayat, analytics, API, atau kuota lebih besar.'],
+];
+
+const plans = [
+  ['Guest', 'Gratis tanpa login', '2 short link/hari', '2 QR/hari', 'Coba langsung dari landing page'],
+  ['Free', 'Gratis dengan akun', '25 short link', '10 QR tersimpan', 'Basic analytics'],
+  ['Pro', 'Rp99.000/30 hari', '500 short link', '100 QR', 'Password, expiry, SVG QR'],
+  ['Business', 'Rp299.000/30 hari', '5.000 short link', '1.000 QR', 'API analytics dan rate limit tinggi'],
+];
+
+export default function Home() {
+  return <main className="min-h-screen bg-slate-950 text-white">
+    <header className="sticky top-0 z-30 border-b border-slate-800/80 bg-slate-950/85 shadow-2xl shadow-black/20 backdrop-blur">
+      <nav className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
+        <div className="text-xl font-black"><span className="text-cyan-400">go.</span>proyek.org</div>
+        <div className="flex items-center gap-2 text-sm sm:gap-3">
+          <a href="#harga" className="hidden px-2 py-2 text-slate-300 sm:block">Harga</a>
+          <Link href="/login" className="px-2 py-2">Masuk</Link>
+          <a href="#gratis" className="rounded-xl bg-cyan-400 px-3 py-2 font-bold text-slate-950 sm:px-4">Coba Gratis</a>
+        </div>
+      </nav>
+    </header>
+
+    <section className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[.9fr_1.1fr] lg:items-center lg:py-20">
+      <div>
+        <div className="mb-5 inline-block rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-sm text-cyan-300">Gratis tanpa login untuk mulai</div>
+        <h1 className="text-4xl font-black leading-tight sm:text-5xl md:text-6xl">Bikin short link dan QR tanpa ribet.</h1>
+        <p className="mt-5 max-w-xl text-base leading-7 text-slate-300 sm:text-lg">Langsung pakai sebagai Guest: 2 short link dan 2 QR gratis per hari, tanpa daftar akun. Upgrade kalau butuh dashboard, analytics, API, dan kuota lebih besar.</p>
+        <div className="mt-7 flex flex-wrap gap-3">
+          <a href="#gratis" className="rounded-xl bg-cyan-400 px-5 py-3 font-bold text-slate-950">Coba tanpa login</a>
+          <a href="#harga" className="rounded-xl border border-slate-700 px-5 py-3">Lihat paket</a>
+        </div>
+      </div>
+      <GuestTools />
+    </section>
+
+    <section id="fitur" className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
+      <h2 className="text-3xl font-black">Yang bisa dipakai langsung</h2>
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {features.map(([heading, copy]) => <article key={heading} className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+          <h3 className="text-lg font-bold">{heading}</h3>
+          <p className="mt-2 text-sm leading-6 text-slate-400">{copy}</p>
+        </article>)}
+      </div>
+    </section>
+
+    <section id="harga" className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="text-sm font-bold text-cyan-300">PAKET</p>
+          <h2 className="text-3xl font-black">Mulai gratis, naik saat perlu</h2>
+        </div>
+        <Link href="/pricing" className="text-sm font-bold text-cyan-300">Detail harga</Link>
+      </div>
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {plans.map(([name, price, linkQuota, qrQuota, note]) => <article key={name} className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+          <h3 className="text-2xl font-black">{name}</h3>
+          <p className="mt-2 min-h-10 text-sm text-slate-400">{price}</p>
+          <ul className="mt-4 space-y-2 text-sm text-slate-200">
+            <li>{linkQuota}</li>
+            <li>{qrQuota}</li>
+            <li>{note}</li>
+          </ul>
+        </article>)}
+      </div>
+    </section>
+
+    <footer className="border-t border-slate-800 py-8 text-center text-sm text-slate-500">© 2026 go.proyek.org · Short link dan QR untuk bisnis modern.</footer>
+  </main>;
+}
