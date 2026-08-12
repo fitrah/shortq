@@ -4,6 +4,7 @@ import { createOpaqueToken, hashApiKey, hashToken, isReservedAlias } from '../sr
 import { verifyMidtransSignature } from '../src/lib/midtrans';
 import { apiKeySchema, linkUpdateSchema, qrSchema } from '../src/lib/validation';
 import { openapi } from '../src/lib/openapi';
+import { getDailyQuotaWindow } from '../src/lib/plans';
 
 afterEach(() => vi.unstubAllEnvs());
 
@@ -55,5 +56,11 @@ describe('expanded validation and docs', () => {
   it('publishes an OpenAPI 3.1 document for all v1 modules', () => {
     expect(openapi.openapi).toBe('3.1.0');
     expect(Object.keys(openapi.paths)).toEqual(expect.arrayContaining(['/links', '/links/{id}', '/analytics', '/qr']));
+  });
+
+  it('calculates guest daily quota windows in Jakarta time', () => {
+    const window = getDailyQuotaWindow(new Date('2026-08-12T18:00:00.000Z'));
+    expect(window.start.toISOString()).toBe('2026-08-12T17:00:00.000Z');
+    expect(window.end.toISOString()).toBe('2026-08-13T17:00:00.000Z');
   });
 });

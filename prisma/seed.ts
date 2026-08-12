@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 
 const db = new PrismaClient();
 const plans = [
+  { name: 'Guest', slug: 'guest', description: 'Akses awal untuk mencoba shortener dan QR harian.', price: 0, linkQuota: 2, qrQuota: 2, apiRateLimit: 10, apiKeyQuota: 0, features: ['Basic analytics', 'PNG QR', 'Daily quota'] },
   { name: 'Free', slug: 'free', description: 'Untuk mencoba dan kebutuhan personal.', price: 0, linkQuota: 25, qrQuota: 10, apiRateLimit: 30, apiKeyQuota: 2, features: ['Custom alias', 'Basic analytics', 'PNG QR'] },
   { name: 'Pro', slug: 'pro', description: 'Untuk kreator dan bisnis yang sedang tumbuh.', price: 99000, linkQuota: 500, qrQuota: 100, apiRateLimit: 120, apiKeyQuota: 10, features: ['Custom alias', 'Advanced analytics', 'Password & expiry', 'PNG/SVG QR'] },
   { name: 'Business', slug: 'business', description: 'Quota besar untuk tim dan integrasi.', price: 299000, linkQuota: 5000, qrQuota: 1000, apiRateLimit: 600, apiKeyQuota: 50, features: ['Custom alias', 'Full analytics', 'Password & expiry', 'PNG/SVG QR', 'High API rate limit', 'Priority support'] },

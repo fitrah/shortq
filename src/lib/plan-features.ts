@@ -5,6 +5,7 @@ export const PLAN_FEATURES = [
   'Full analytics',
   'PNG QR',
   'PNG/SVG QR',
+  'Daily quota',
   'Password & expiry',
   'High API rate limit',
   'Priority support',

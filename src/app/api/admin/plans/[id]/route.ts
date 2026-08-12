@@ -16,7 +16,7 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   const { id } = await params;
   const plan = await prisma.plan.findUnique({ where: { id }, include: { _count: { select: { subscriptions: true, orders: true } } } });
   if (!plan) return errorResponse('Paket tidak ditemukan', 404);
-  if (plan.slug === 'free' || plan._count.subscriptions || plan._count.orders) return errorResponse('Paket Free atau paket yang sudah digunakan tidak dapat dihapus; nonaktifkan saja', 409);
+  if (['guest', 'free'].includes(plan.slug) || plan._count.subscriptions || plan._count.orders) return errorResponse('Paket Guest, Free, atau paket yang sudah digunakan tidak dapat dihapus; nonaktifkan saja', 409);
   await prisma.plan.delete({ where: { id } });
   return new Response(null, { status: 204 });
 }

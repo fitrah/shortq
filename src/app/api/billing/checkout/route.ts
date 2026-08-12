@@ -17,7 +17,15 @@ export async function POST(request: Request) {
     prisma.user.findUnique({ where: { id: session.userId }, select: { name: true, email: true } }),
   ]);
   if (!plan || !user) return errorResponse('Paket tidak ditemukan', 404);
-  if (plan.price <= 0) return Response.json({ free: true, message: 'Paket Free otomatis berlaku saat tidak ada langganan aktif.' });
+  if (plan.slug === 'guest') return Response.json({ free: true, message: 'Paket Guest otomatis berlaku saat tidak ada langganan aktif.' });
+  if (plan.price <= 0) {
+    const now = new Date();
+    await prisma.$transaction([
+      prisma.subscription.updateMany({ where: { userId: session.userId, status: 'ACTIVE' }, data: { status: 'CANCELED' } }),
+      prisma.subscription.create({ data: { userId: session.userId, planId: plan.id, status: 'ACTIVE', startsAt: now, endsAt: null } }),
+    ]);
+    return Response.json({ free: true, message: `Paket ${plan.name} sudah aktif.` });
+  }
   const externalId = `GOP-${Date.now()}-${nanoid(8)}`;
   const order = await prisma.order.create({
     data: { userId: session.userId, planId: plan.id, externalId, amount: plan.price, metadata: { planName: plan.name } },
