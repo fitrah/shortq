@@ -22,6 +22,7 @@ export default function Home() {
         <div className="text-xl font-black"><span className="text-cyan-400">go.</span>proyek.org</div>
         <div className="flex items-center gap-2 text-sm sm:gap-3">
           <a href="#harga" className="hidden px-2 py-2 text-slate-300 sm:block">Harga</a>
+          <Link href="/donasi" className="hidden px-2 py-2 text-slate-300 sm:block">Donasi</Link>
           <Link href="/login" className="px-2 py-2">Masuk</Link>
           <a href="#gratis" className="rounded-xl bg-cyan-400 px-3 py-2 font-bold text-slate-950 sm:px-4">Coba Gratis</a>
         </div>
@@ -72,6 +73,6 @@ export default function Home() {
       </div>
     </section>
 
-    <footer className="border-t border-slate-800 py-8 text-center text-sm text-slate-500">© 2026 go.proyek.org · Short link dan QR untuk bisnis modern.</footer>
+    <footer className="border-t border-slate-800 py-8 text-center text-sm text-slate-500">© 2026 go.proyek.org · Short link dan QR untuk bisnis modern. <Link href="/donasi" className="text-cyan-300">Donasi</Link></footer>
   </main>;
 }
