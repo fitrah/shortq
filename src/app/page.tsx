@@ -4,14 +4,14 @@ import GuestTools from '@/components/guest-tools';
 const features = [
   ['Cepat', 'Short link langsung aktif dengan alias otomatis atau alias pilihan.'],
   ['Tanpa login', 'Guest bisa membuat 2 short link dan 2 QR setiap hari dari browser yang sama.'],
-  ['QR praktis', 'Generate QR PNG untuk URL atau teks tanpa masuk dashboard.'],
+  ['QR praktis', 'Generate dan download QR PNG untuk URL atau teks tanpa masuk dashboard.'],
   ['Upgrade rapi', 'Daftar akun saat butuh riwayat, analytics, API, atau kuota lebih besar.'],
 ];
 
 const plans = [
-  ['Guest', 'Gratis tanpa login', '2 short link/hari', '2 QR/hari', 'Coba langsung dari landing page'],
-  ['Free', 'Gratis dengan akun', '25 short link', '10 QR tersimpan', 'Basic analytics'],
-  ['Pro', 'Rp99.000/30 hari', '500 short link', '100 QR', 'Password, expiry, SVG QR'],
+  ['Guest', 'Gratis tanpa login', '2 short link/hari', '2 QR PNG/hari', 'Download PNG untuk print biasa'],
+  ['Free', 'Gratis dengan akun', '25 short link', '10 QR PNG tersimpan', 'Basic analytics'],
+  ['Pro', 'Rp99.000/30 hari', '500 short link', '100 QR PNG/SVG', 'SVG untuk desain dan print besar'],
   ['Business', 'Rp299.000/30 hari', '5.000 short link', '1.000 QR', 'API analytics dan rate limit tinggi'],
 ];
 

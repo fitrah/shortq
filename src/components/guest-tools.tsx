@@ -55,6 +55,14 @@ export default function GuestTools() {
     event.currentTarget.reset();
   }
 
+  function downloadQr() {
+    if (!qr) return;
+    const anchor = document.createElement('a');
+    anchor.href = qr.data;
+    anchor.download = 'qr-go-proyek-guest.png';
+    anchor.click();
+  }
+
   const shortUrl = link ? `${window.location.origin}/${link.alias}` : '';
 
   return <div id="gratis" className="grid gap-4 lg:grid-cols-2">
@@ -80,6 +88,8 @@ export default function GuestTools() {
       {qrMessage && <p className="mt-3 text-sm text-amber-300">{qrMessage}</p>}
       {qr && <div className="mt-4 rounded-xl bg-white p-4 text-center">
         <Image src={qr.data} alt="QR preview" width={180} height={180} unoptimized className="mx-auto" />
+        <button type="button" onClick={downloadQr} className="mt-4 rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white">Download PNG</button>
+        <p className="mx-auto mt-3 max-w-xs text-xs leading-5 text-slate-600">PNG bisa langsung dipakai untuk cetak biasa. Butuh file SVG/vektor yang lebih tajam untuk print besar? Daftar dan upgrade ke Pro.</p>
       </div>}
     </form>
   </div>;
